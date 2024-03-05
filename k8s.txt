@@ -1,0 +1,445 @@
+Kubernets abbrivates as k8s
+
+simple pod
+
+label:env , db,
+***********************************
+deployment--->rs-->pod
+***********************************
+
+hum image se pod se create krte h
+----------------------------------------------------
+part1
+--------------------------------------------------
+
+create pod
+
+we can create pod using pod defintion file 
+i).pod-definition.yaml
+
+
+kubectl apply -f pod-defination.yaml
+
+
+ii).or we can use command to create pod
+
+kubectl run <pod-name-u-want-to-give> --image=ngnix
+
+
+we can also get definition file from command using
+
+kubectl run <pod-name-u-want-to-give> --image=ngnix --dry-run=client -o yaml
+
+
+change label from run=<pod-name-u-want-to-give>
+to env=dev
+--------------------------------------------------
+
+
+view all pods pods
+
+kubectl get pod 
+
+-o wide option will fetch some extra info
+
+--------------------------------------------------
+
+
+if namespace is not provided it will use default namespace
+---------------------------------------------
+details of pod / which image used in pod creation/ip of pod/container id
+
+
+kubectl describe pod pod-name
+
+
+
+-------------------------------------------------------
+get pod using label /selector
+
+
+kubectl get pod -l env=dev
+--------------------------------------------------------
+abhi agar hum pod ko delete krte h to wo wapas nhi ayega so that we need to create replica set
+
+---------------------------------------------------------
+*********************************************************                   
+part 2 Replica set
+*********************************************************
+---------------------------------------------------------------
+what is replica set?
+
+it ensure specific number of pods
+
+scaling 
+
+
+
+get all replicaset
+kubectl get rs
+--------------------------------------------------
+create replicaset using command
+
+kubectl create deployment <name-of-rs> --image=ngnix --replicas=3 --dry-run=client -o yaml
+
+---------------------------------------------------------------------------------------------
+
+kubectl edit rs <rs-name>
+
+--------------------------------------------------------------
+
+
+disadvantage of rs whenever we want to change image so drop rs first then crweate 
+
+
+
+manlo rs me to version change ho gya but pod ho ske to abhi v purani hi image ko refer kre
+
+
+-------------------------------------------------------------------------------------
+*********************************************************************************
+
+part 3 deployment
+
+*************************************************************************
+---------------------------------------------------------------------------
+
+deployemt will create replica set 
+
+replica set will create pod
+
+helpful in image change
+
+one by one rs get down get up
+
+deployment keep track of history of revision
+
+
+
+***********************************************************
+
+part 4 daemonset
+
+
+***********************************************************
+
+
+
+damonset is like replica set but only one copy of pod of similiar type will be added to another node
+
+
+
+
+maybe replicaset only defines that we need to maintain this many number of repicas but it may create 2 repicas in node a 1 in b 1 in c 
+
+
+whereas dameonset will ensure each pod get deployed in each node 
+
+
+
+dameset ----antivirus install
+
+
+-----------------------------------------------------
+print all nodes
+
+kubectl get nodes
+--------------------------------------------
+
+adding one more node into cluster
+
+
+digital ocean >>> add node poool
+
+---------------------------------------------
+
+kubectl get pod - o wide 
+
+we can see 
+           node on which pod is deployed
+
+
+----------------------------------------------
+
+
+to delete daemonset
+ delete file from which damonset is created
+
+kubectl delete -f dameoset.yaml
+
+----------------------------------------------------------
+***************************************************************
+
+part 5 label selector
+****************************************************************
+------------------------------------------------------------------
+
+i) definition file
+
+ii)label can be added at any time
+---------------------------------------------------------------
+in AWS instances we have tag option to do so
+
+manage tag
+
+to filter object use search bar
+-------------------------------------------------------------
+
+adding label
+
+kubectl label pod <pod-name> env=dev name=db
+
+------------------------------------------------
+
+to delete one label from pod
+
+kubectl label pod <pod-name> <label-name>-
+****************************************************
+
+part 6 static pod
+
+*****************************************************
+
+static pod is created by kubelete
+
+if disaster happen 
+
+-------------------------------------------------
+
+to create static pod in master node controleplane
+
+pa -aux | grep kubelet
+
+
+cd /etc/kubernetes/manifests
+
+vi static.yaml
+
+
+-------------------------------------------------------------
+
+
+humare pass do node hote h 
+
+controleplane master 
+
+node01 worker
+
+
+same steps is for creating static pod in worker node
+
+
+ssh node01
+
+cd /etc/kubernetes/manifests
+
+vi static.yaml
+
+
+logout
+
+
+---------------------------------------
+****************************************
+
+part 8
+NodeName and NodeSelector 
+
+******************************************
+------------------------------------------
+
+to deploy pod into particular node name
+
+
+--------------------------------------------
+
+*********************************************
+
+part 9  NodeAffinity
+
+
+**********************************************
+----------------------------------------------
+
+streams
+
+----------------------------------------------
+**********************************************
+
+
+prompt write something to a file 1 million times
+
+ console.time("writeMany");
+//this peace of code takes this many of time
+ console.timeEnd("writeMany");
+
+
+disk time may be differnt differnt for time to time cpu speed
+
+a machine may have many cores of cpu
+
+in task manager we can see cpu memory usage
+
+
+
+
+
+Ans:
+// const fs = require("node:fs/promises");
+
+// Execution Time: 8s
+// CPU Usage: 100% (one core)
+// Memory Usage: 50MB
+// (async () => {
+//   console.time("writeMany");
+//   const fileHandle = await fs.open("test.txt", "w");
+
+//   for (let i = 0; i < 1000000; i++) {
+//     await fileHandle.write(` ${i} `);
+//   }
+//   console.timeEnd("writeMany");
+// })();
+
+
+
+
+fd ---file descriptor a unique number associated with opend file
+
+ Ans2:
+
+// Execution Time: 1.8s
+// CPU Usage: 100% (one core)
+// Memory Usage: 50MB
+// const fs = require("node:fs");
+
+// (async () => {
+//   console.time("writeMany");
+//   fs.open("test.txt", "w", (err, fd) => {
+//     for (let i = 0; i < 1000000; i++) {
+//       const buff = Buffer.from(` ${i} `, "utf-8");
+//       fs.writeSync(fd, buff);
+//     }
+
+//     console.timeEnd("writeMany");
+//   });
+// })();
+
+
+
+Ans3:
+writting data using streams
+
+// const fs = require("node:fs/promises");
+
+// DON'T DO IT THIS WAY!!!!        memory usage increased to 4 x
+// Execution Time: 270ms
+// CPU Usage: 100% (one core)
+// Memory Usage: 200MB
+// (async () => {
+//   console.time("writeMany");
+//   const fileHandle = await fs.open("test.txt", "w");
+
+//   const stream = fileHandle.createWriteStream();
+
+//   for (let i = 0; i < 1000000; i++) {
+//     const buff = Buffer.from(` ${i} `, "utf-8");
+
+//     // console.log(stream.writableBuffer);
+//     // console.log(stream.writableHighWaterMark);
+//     stream.write(buff);
+//   }
+//   console.timeEnd("writeMany");
+// })();
+
+
+****************************************************************************
+
+stream helps in data streaming
+****************************************************************************
+
+
+data flowing ---chunk of data is send
+
+
+*****************************************************************************
+
+file is send to memory then another location
+
+*****************************************************************************
+
+response is send to client using write streams &
+
+req is recieved using read streams 
+
+*****************************************************
+
+ans3 : k case me hum streams me data store kr rhe h 
+when stream is reached to particular size then just write its data to storage
+
+
+******************************************************
+
+streams are of 4 type
+
+read 
+write 
+duplex=read+write
+transform=duplex+encryption/decrption
+
+while encrypting/ decrypting or compressing/decompressing a file we can use transform streams we would take small chunk of data from file send it to memory to perform our transformation logic
+
+*******************************************************************************************************************
+ console.log(stream.writableHighWaterMark);-----internal buffer size of stream
+
+ console.log(stream.writableLength);----------how much internal buffer is occupied
+
+*******************************************************************************************************
+
+1e+8 ===1 *10 pow 8
+
+***********************************************************************
+once streams gets filled it will take some time toget emptied then 
+will throw drain event
+
+const fs = require("node:fs/promises");
+
+(async () => {
+  console.time("writeMany");
+  const fileHandle = await fs.open("test.txt", "w");
+
+  const stream = fileHandle.createWriteStream();
+
+  console.log(stream.writableHighWaterMark);
+
+  // 8 bits = 1 byte
+  // 1000 bytes = 1 kilobyte
+  // 1000 kilobytes = 1 megabyte
+
+  // 1a => 0001 1010
+
+   const buff = Buffer.alloc(16383, "a");
+  console.log(stream.write(buff));
+   console.log(stream.write(Buffer.alloc(1, "a")));
+  // console.log(stream.write(Buffer.alloc(1, "a")));
+  // console.log(stream.write(Buffer.alloc(1, "a")));
+
+  // console.log(stream.writableLength);
+
+  stream.on("drain", () => {
+   console.log(stream.write(Buffer.alloc(16384, "a")));
+
+    console.log("We are now safe to write more!");
+  });
+
+
+  }; 
+
+
+*************************************************************
+
+good practice
+
+stream.writableHighWaterMark<stream.writableLength
+
+
+*************************************************************
